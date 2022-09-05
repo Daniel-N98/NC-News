@@ -19,6 +19,6 @@ exports.fetchArticleById = (request, response, next) => {
       })
       .catch((error) => next(error));
   } else {
-    response.status(404).send({ message: "Invalid id" });
+    response.status(400).send({ message: "Invalid id" });
   }
 };
