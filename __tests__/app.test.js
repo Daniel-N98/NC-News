@@ -58,12 +58,12 @@ describe("GET /api/articles/:article_id", () => {
         expect(body.article).toEqual(expectedArticle);
       });
   });
-  test("Status: 404, handles error when no article exists with the given ID", () => {
+  test("Status: 400, handles error when no article exists with the given ID", () => {
     return request(app)
       .get("/api/articles/15")
-      .expect(404)
+      .expect(400)
       .then(({ body }) => {
-        expect(body.message).toBe("Not found");
+        expect(body.message).toBe("Invalid id");
       });
   });
 });

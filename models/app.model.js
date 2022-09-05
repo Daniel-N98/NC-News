@@ -9,7 +9,7 @@ exports.fetchArticleById = (article_id) => {
     .query(`SELECT * from articles WHERE article_id = $1;`, [article_id])
     .then((article) => {
       if (article.rows.length === 0) {
-        return Promise.reject({ code: 404, message: "Not found" });
+        return Promise.reject({ code: 400, message: "Invalid id" });
       }
       return article.rows[0];
     });
