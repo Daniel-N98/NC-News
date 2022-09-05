@@ -63,6 +63,14 @@ describe("GET /api/articles/:article_id", () => {
       .get("/api/articles/15")
       .expect(400)
       .then(({ body }) => {
+        expect(body.message).toBe("Not found");
+      });
+  });
+  test("Status: 404, handles error when Id is invalid", () => {
+    return request(app)
+      .get("/api/articles/NotAnId")
+      .expect(404)
+      .then(({ body }) => {
         expect(body.message).toBe("Invalid id");
       });
   });

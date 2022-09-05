@@ -11,9 +11,14 @@ exports.fetchTopics = (request, response, next) => {
 };
 
 exports.fetchArticleById = (request, response, next) => {
-  fetchArticleById(request.params.article_id)
-    .then((article) => {
-      response.status(200).send({ article });
-    })
-    .catch((error) => next(error));
+  const { article_id } = request.params;
+  if (Number(article_id)) {
+    fetchArticleById(article_id)
+      .then((article) => {
+        response.status(200).send({ article });
+      })
+      .catch((error) => next(error));
+  } else {
+    response.status(404).send({ message: "Invalid id" });
+  }
 };
