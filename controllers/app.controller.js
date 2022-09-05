@@ -1,6 +1,6 @@
 const { response } = require("../app.js");
 const db = require("../db/connection");
-const { fetchTopics } = require("../models/app.model.js");
+const { fetchTopics, fetchArticleById } = require("../models/app.model.js");
 
 exports.fetchTopics = (request, response, next) => {
   fetchTopics()
@@ -8,4 +8,17 @@ exports.fetchTopics = (request, response, next) => {
       response.status(200).send({ topics });
     })
     .catch((error) => next(error));
+};
+
+exports.fetchArticleById = (request, response, next) => {
+  const { article_id } = request.params;
+  if (Number(article_id)) {
+    fetchArticleById(article_id)
+      .then((article) => {
+        response.status(200).send({ article });
+      })
+      .catch((error) => next(error));
+  } else {
+    response.status(400).send({ message: "Invalid id" });
+  }
 };
