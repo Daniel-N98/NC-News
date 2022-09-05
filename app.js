@@ -3,8 +3,6 @@ const { fetchTopics } = require("./controllers/app.controller");
 
 const app = express();
 
-app.use(express.json());
-
 app.get("/api/topics", fetchTopics);
 
 app.use((error, request, response, next) => {
