@@ -4,8 +4,8 @@ const { fetchTopics } = require("../models/app.model.js");
 
 exports.fetchTopics = (request, response, next) => {
   fetchTopics()
-    .then((rows) => {
-      response.status(200).send({ rows });
+    .then((topics) => {
+      response.status(200).send({ topics });
     })
     .catch((error) => next(error));
 };
