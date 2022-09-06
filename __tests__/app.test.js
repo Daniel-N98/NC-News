@@ -113,7 +113,7 @@ describe("PATCH /api/articles/:article_id", () => {
           created_at: "2020-10-16T05:03:00.000Z",
           votes: 10,
         };
-        expect(body.updated_article).toEqual({
+        expect(body.article).toEqual({
           article_id: 2,
           ...expectedArticle,
         });
@@ -134,7 +134,7 @@ describe("PATCH /api/articles/:article_id", () => {
           created_at: "2020-07-09T20:11:00.000Z",
           votes: 85,
         };
-        expect(body.updated_article).toEqual({
+        expect(body.article).toEqual({
           article_id: 1,
           ...expectedArticle,
         });
@@ -164,6 +164,16 @@ describe("PATCH /api/articles/:article_id", () => {
     const newVotes = { inc_votes: true };
     return request(app)
       .patch("/api/articles/NotAnID")
+      .send(newVotes)
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.message).toBe("Bad request");
+      });
+  });
+  test("Status: 400, handles error correctly when passed an object that does not include the 'inv_votes' key", () => {
+    const newVotes = { fish: true, fox: false };
+    return request(app)
+      .patch("/api/articles/2")
       .send(newVotes)
       .expect(400)
       .then(({ body }) => {

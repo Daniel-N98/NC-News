@@ -38,10 +38,13 @@ exports.fetchUsers = (request, response, next) => {
 
 exports.patchArticle = (request, response, next) => {
   const { article_id } = request.params;
+  if (!request.body.hasOwnProperty("inc_votes")) {
+    response.status(400).send({ message: "Bad request" });
+  }
   const { inc_votes } = request.body;
   patchArticleById(article_id, inc_votes)
-    .then((updated_article) => {
-      response.status(200).send({ updated_article });
+    .then((article) => {
+      response.status(200).send({ article });
     })
     .catch((error) => next(error));
 };

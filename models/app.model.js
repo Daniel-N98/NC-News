@@ -19,24 +19,23 @@ exports.fetchUsers = () => {
   return db.query(`SELECT * FROM users`).then((users) => users.rows);
 };
 
-exports.patchArticleById = async (article_id, votes) => {
+exports.patchArticleById = (article_id, votes) => {
   if (!Number.parseInt(article_id) || !Number.parseInt(votes)) {
     return Promise.reject({ code: 400, message: "Bad request" });
   }
-  let currentVotes = await db.query(
-    "SELECT votes FROM articles WHERE article_id = $1",
-    [article_id]
-  );
-  if (currentVotes.rowCount === 0) {
-    return Promise.reject({ code: 404, message: "Article not found" });
-  }
-  currentVotes = currentVotes.rows[0].votes;
   return db
-    .query(
-      "UPDATE articles SET votes = $1 WHERE article_id = $2 RETURNING *;",
-      [currentVotes + votes, article_id]
-    )
-    .then((article) => {
-      return article.rows[0];
+    .query("SELECT votes FROM articles WHERE article_id = $1", [article_id])
+    .then((articles) => {
+      if (articles.rowCount === 0) {
+        return Promise.reject({ code: 404, message: "Article not found" });
+      }
+      return db
+        .query(
+          "UPDATE articles SET votes = $1 WHERE article_id = $2 RETURNING *;",
+          [articles.rows[0].votes + votes, article_id]
+        )
+        .then((article) => {
+          return article.rows[0];
+        });
     });
 };
