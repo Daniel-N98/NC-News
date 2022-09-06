@@ -7,9 +7,9 @@ exports.fetchTopics = async () => {
 exports.fetchArticleById = (article_id) => {
   return db
     .query(
-      `SELECT a.*, (select COUNT(c.*) FROM comments AS c WHERE c.article_id = a.article_id) AS comment_count 
-    FROM articles AS a
-    WHERE a.article_id = $1`,
+      `SELECT *, (select COUNT(*) FROM comments WHERE article_id = articles.article_id) AS comment_count 
+    FROM articles
+    WHERE article_id = $1`,
       [article_id]
     )
     .then((article) => {
