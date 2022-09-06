@@ -4,6 +4,7 @@ const {
   fetchTopics,
   fetchArticleById,
   fetchUsers,
+  patchArticleById,
 } = require("../models/app.model.js");
 
 exports.fetchTopics = (request, response, next) => {
@@ -31,6 +32,19 @@ exports.fetchUsers = (request, response, next) => {
   fetchUsers()
     .then((users) => {
       response.status(200).send({ users });
+    })
+    .catch((error) => next(error));
+};
+
+exports.patchArticle = (request, response, next) => {
+  const { article_id } = request.params;
+  if (!request.body.hasOwnProperty("inc_votes")) {
+    response.status(400).send({ message: "Bad request" });
+  }
+  const { inc_votes } = request.body;
+  patchArticleById(article_id, inc_votes)
+    .then((article) => {
+      response.status(200).send({ article });
     })
     .catch((error) => next(error));
 };
