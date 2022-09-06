@@ -6,7 +6,12 @@ exports.fetchTopics = async () => {
 
 exports.fetchArticleById = (article_id) => {
   return db
-    .query(`SELECT * from articles WHERE article_id = $1;`, [article_id])
+    .query(
+      `SELECT *, (select COUNT(*) FROM comments WHERE article_id = articles.article_id) AS comment_count 
+    FROM articles
+    WHERE article_id = $1`,
+      [article_id]
+    )
     .then((article) => {
       if (article.rows.length === 0) {
         return Promise.reject({ code: 404, message: "Not found" });
