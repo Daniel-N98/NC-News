@@ -62,11 +62,18 @@ describe("GET /api/articles", () => {
             })
           );
         });
+      });
+    });
+    test('Status: 200, articles are sorted by date in descending order', () => {
+      return request(app)
+      .get('/api/articles')
+      .expect(200)
+      .then(({body}) => {
         expect(body.articles).toBeSortedBy("created_at", {
           descending: true,
         });
       });
-  });
+    });
 });
 
 describe("GET /api/articles?topic", () => {
