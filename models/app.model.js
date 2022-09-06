@@ -14,3 +14,7 @@ exports.fetchArticleById = (article_id) => {
       return article.rows[0];
     });
 };
+
+exports.fetchUsers = () => {
+  return db.query(`SELECT * FROM users`).then((users) => users.rows);
+};

@@ -8,8 +8,8 @@ afterAll(() => db.end());
 
 beforeEach(() => seed(testData));
 
-describe("Status: 200, GET /api/topics", () => {
-  test("returns an array", () => {
+describe("GET /api/topics", () => {
+  test("Status: 200, returns an array", () => {
     return request(app)
       .get("/api/topics")
       .expect(200)
@@ -72,6 +72,27 @@ describe("GET /api/articles/:article_id", () => {
       .expect(400)
       .then(({ body }) => {
         expect(body.message).toBe("Invalid id");
+      });
+  });
+});
+
+describe("GET /api/users", () => {
+  test("Status: 200, returns an array of user objects", () => {
+    return request(app)
+      .get("/api/users")
+      .expect(200)
+      .then(({ body }) => {
+        const users = body.users;
+        expect(users.length).toBe(4);
+        users.forEach((user) => {
+          expect(user).toEqual(
+            expect.objectContaining({
+              username: expect.any(String),
+              name: expect.any(String),
+              avatar_url: expect.any(String),
+            })
+          );
+        });
       });
   });
 });
