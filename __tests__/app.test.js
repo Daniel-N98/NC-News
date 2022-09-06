@@ -77,23 +77,7 @@ describe("GET /api/articles/:article_id", () => {
 });
 
 describe("GET /api/users", () => {
-  test("Status: 200, returns an array", () => {
-    return request(app)
-      .get("/api/users")
-      .expect(200)
-      .then(({ body }) => {
-        expect(Array.isArray(body.users)).toBe(true);
-      });
-  });
-  test("Status: 200, returns an array of length 4", () => {
-    return request(app)
-      .get("/api/users")
-      .expect(200)
-      .then(({ body }) => {
-        expect(body.users.length).toBe(4);
-      });
-  });
-  test("Status: 200, returned array contains user objects", () => {
+  test("Status: 200, returns array of user objects", () => {
     return request(app)
       .get("/api/users")
       .expect(200)
