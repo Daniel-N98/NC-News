@@ -63,17 +63,17 @@ describe("GET /api/articles", () => {
           );
         });
       });
-    });
-    test('Status: 200, articles are sorted by date in descending order', () => {
-      return request(app)
-      .get('/api/articles')
+  });
+  test("Status: 200, articles are sorted by date in descending order", () => {
+    return request(app)
+      .get("/api/articles")
       .expect(200)
-      .then(({body}) => {
+      .then(({ body }) => {
         expect(body.articles).toBeSortedBy("created_at", {
           descending: true,
         });
       });
-    });
+  });
 });
 
 describe("GET /api/articles?topic", () => {
@@ -89,20 +89,20 @@ describe("GET /api/articles?topic", () => {
         });
       });
   });
-  test("Status: 404, handles error when no articles contain the specified topic", () => {
+  test("Status: 404, handles error when topic does not exist", () => {
     return request(app)
       .get("/api/articles?topic=pirelli")
       .expect(404)
       .then(({ body }) => {
-        expect(body.message).toBe("Not found");
+        expect(body.message).toBe("Topic does not exist");
       });
   });
-  test("Status: 400, handles error when an invalid topic is provided", () => {
+  test("Status: 200, returns an empty array when topic exists, but no articles have that topic", () => {
     return request(app)
-      .get("/api/articles?topic=17-29..gf")
-      .expect(400)
+      .get("/api/articles?topic=paper")
+      .expect(200)
       .then(({ body }) => {
-        expect(body.message).toBe("Invalid topic");
+        expect(body.articles).toEqual([]);
       });
   });
 });
