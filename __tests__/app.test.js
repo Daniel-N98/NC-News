@@ -40,6 +40,66 @@ describe("GET /api/topics", () => {
   });
 });
 
+describe("GET /api/articles", () => {
+  test("Status: 200, returns an array of all articles sorted by date in descending order", () => {
+    return request(app)
+      .get("/api/articles")
+      .expect(200)
+      .then(({ body }) => {
+        const { articles } = body;
+        expect(articles.length).toBe(12);
+        articles.forEach((article) => {
+          expect(article).toEqual(
+            expect.objectContaining({
+              article_id: expect.any(Number),
+              title: expect.any(String),
+              topic: expect.any(String),
+              author: expect.any(String),
+              body: expect.any(String),
+              created_at: expect.any(String),
+              votes: expect.any(Number),
+              comment_count: expect.any(String),
+            })
+          );
+        });
+        expect(body.articles).toBeSortedBy("created_at", {
+          descending: true,
+        });
+      });
+  });
+});
+
+describe("GET /api/articles?topic", () => {
+  test("Status: 200, returns an array of articles with the specified topic", () => {
+    return request(app)
+      .get("/api/articles?topic=mitch")
+      .expect(200)
+      .then(({ body }) => {
+        const { articles } = body;
+        expect(articles.length).toBe(11);
+        articles.forEach((article) => {
+          expect(article.topic).toBe("mitch");
+        });
+      });
+  });
+  test("Status: 404, handles error when no articles contain the specified topic", () => {
+    return request(app)
+      .get("/api/articles?topic=pirelli")
+      .expect(404)
+      .then(({ body }) => {
+        expect(body.message).toBe("Not found");
+      });
+  });
+  test("Status: 400, handles error when an invalid topic is provided", () => {
+    return request(app)
+      .get("/api/articles?topic=17-29..gf")
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.message).toBe("Invalid topic");
+      });
+  });
+});
+
 describe("GET /api/articles/:article_id", () => {
   test("Status: 200, returns an article by ID including comment_count", () => {
     const expectedArticle = {
