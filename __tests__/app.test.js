@@ -101,11 +101,13 @@ describe("GET /api/users", () => {
         const users = body.users;
         expect(users.length).toBe(4);
         users.forEach((user) => {
-          expect(user).toEqual({
-            username: expect.any(String),
-            name: expect.any(String),
-            avatar_url: expect.any(String),
-          });
+          expect(user).toEqual(
+            expect.objectContaining({
+              username: expect.any(String),
+              name: expect.any(String),
+              avatar_url: expect.any(String),
+            })
+          );
         });
       });
   });
