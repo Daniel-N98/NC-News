@@ -6,6 +6,7 @@ const {
   patchArticle,
   fetchArticles,
   fetchArticleComments,
+  postArticleComment,
 } = require("./controllers/app.controller");
 
 const app = express();
@@ -15,6 +16,7 @@ app.get("/api/topics", fetchTopics);
 app.get("/api/articles", fetchArticles);
 app.get("/api/articles/:article_id", fetchArticleById);
 app.get("/api/articles/:article_id/comments", fetchArticleComments);
+app.post("/api/articles/:article_id/comments", postArticleComment);
 app.get("/api/users", fetchUsers);
 app.patch("/api/articles/:article_id", patchArticle);
 
