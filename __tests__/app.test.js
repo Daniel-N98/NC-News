@@ -314,3 +314,87 @@ describe("GET /api/articles/:article_id/comments", () => {
       });
   });
 });
+
+describe("POST /api/articles/:article_id/comments", () => {
+  test("Status: 201, returns with the posted comment", () => {
+    const comment = {
+      username: "butter_bridge",
+      body: "Why are stars always in the same spot in the sky? :/",
+    };
+    return request(app)
+      .post("/api/articles/2/comments")
+      .send(comment)
+      .expect(201)
+      .then(({ body }) => {
+        expect(body.comment.rows[0]).toEqual({
+          article_id: 2,
+          body: "Why are stars always in the same spot in the sky? :/",
+          author: comment.username,
+          comment_id: 19,
+          created_at: expect.any(String),
+          votes: 0,
+        });
+      });
+  });
+  test("Status: 404, handles error when article does not exist", () => {
+    const comment = {
+      username: "butter_bridge",
+      body: "Why are stars always in the same spot in the sky? :/",
+    };
+    return request(app)
+      .post("/api/articles/35/comments")
+      .send(comment)
+      .expect(404)
+      .then(({ body }) => {
+        expect(body.message).toBe("Article does not exist");
+      });
+  });
+  test("Status: 404, handles error when username does not exist in author table", () => {
+    const comment = {
+      username: "dan",
+      body: "Why are stars always in the same spot in the sky? :/",
+    };
+    return request(app)
+      .post("/api/articles/2/comments")
+      .send(comment)
+      .expect(404)
+      .then(({ body }) => {
+        expect(body.message).toBe("Username does not exist");
+      });
+  });
+  test("Status: 400, handles error when article id is invalid", () => {
+    const comment = {
+      username: "butter_bridge",
+      body: "Why are stars always in the same spot in the sky? :/",
+    };
+    return request(app)
+      .post("/api/articles/NotAnID/comments")
+      .send(comment)
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.message).toBe("Invalid id");
+      });
+  });
+  test("Status: 400, handles error when username or body are missing", () => {
+    const comment = { username: "DanDan" };
+    return request(app)
+      .post("/api/articles/2/comments")
+      .send(comment)
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.message).toBe("Invalid comment");
+      });
+  });
+  test("Status: 400, handles error when username or body are missing", () => {
+    const comment = {
+      body: "Why are stars always in the same spot in the sky? :/",
+    };
+    return request(app)
+      .post("/api/articles/2/comments")
+      .send(comment)
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.message).toBe("Invalid comment");
+      });
+  });
+});

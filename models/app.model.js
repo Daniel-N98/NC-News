@@ -81,6 +81,42 @@ exports.fetchArticleComments = async (article_id) => {
   return comments.rows;
 };
 
+exports.postArticleComment = async (article_id, comment) => {
+  if (isInvalidID(article_id)) {
+    return Promise.reject({ code: 400, message: "Invalid id" });
+  }
+  if (!(await articleExists(article_id))) {
+    return Promise.reject({ code: 404, message: "Article does not exist" });
+  }
+  if (!comment.hasOwnProperty("username") || !comment.hasOwnProperty("body")) {
+    return Promise.reject({ code: 400, message: "Invalid comment" });
+  }
+  if (!(await userExists(comment.username))) {
+    return Promise.reject({ code: 404, message: "Username does not exist" });
+  }
+  return await db.query(
+    `INSERT INTO comments (article_id, author, body)
+    VALUES ($1, $2, $3) RETURNING *;`,
+    [article_id, comment.username, comment.body]
+  );
+};
+
 function isInvalidID(article_id) {
   return !/^[0-9]*$/.test(article_id);
+}
+
+async function userExists(username) {
+  const result = await db.query(
+    "SELECT username FROM users WHERE username = $1",
+    [username]
+  );
+  return result.rowCount > 0;
+}
+
+async function articleExists(article_id) {
+  const articles = await db.query(
+    "SELECT article_id FROM articles WHERE article_id = $1",
+    [article_id]
+  );
+  return articles.rowCount > 0;
 }
