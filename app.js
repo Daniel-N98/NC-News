@@ -5,14 +5,16 @@ const {
   fetchUsers,
   patchArticle,
   fetchArticles,
+  fetchArticleComments,
 } = require("./controllers/app.controller");
 
 const app = express();
 app.use(express.json());
 
 app.get("/api/topics", fetchTopics);
-app.get("/api/articles/:article_id", fetchArticleById);
 app.get("/api/articles", fetchArticles);
+app.get("/api/articles/:article_id", fetchArticleById);
+app.get("/api/articles/:article_id/comments", fetchArticleComments);
 app.get("/api/users", fetchUsers);
 app.patch("/api/articles/:article_id", patchArticle);
 

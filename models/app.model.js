@@ -52,7 +52,8 @@ exports.fetchArticles = async (request) => {
     const topics = await db.query("SELECT * FROM topics WHERE slug = $1", [
       topic,
     ]);
-    if (topics.rowCount === 0) return Promise.reject({code: 404, message: "Topic does not exist"});
+    if (topics.rowCount === 0)
+      return Promise.reject({ code: 404, message: "Topic does not exist" });
     whereClause = `WHERE topic = '${topic}'`;
   }
   const articles = await db.query(
@@ -61,3 +62,25 @@ exports.fetchArticles = async (request) => {
   );
   return articles.rows;
 };
+
+exports.fetchArticleComments = async (article_id) => {
+  if (isInvalidID(article_id)) {
+    return Promise.reject({ code: 400, message: "Invalid id" });
+  }
+  const articles = await db.query(
+    "SELECT article_id FROM articles WHERE article_id = $1",
+    [article_id]
+  );
+  if (articles.rowCount === 0) {
+    return Promise.reject({ code: 404, message: "Article does not exist" });
+  }
+  const comments = await db.query(
+    `SELECT comment_id, votes, created_at, author, body FROM comments
+    WHERE article_id = ${article_id}`
+  );
+  return comments.rows;
+};
+
+function isInvalidID(article_id) {
+  return !/^[0-9]*$/.test(article_id);
+}

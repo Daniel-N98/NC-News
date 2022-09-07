@@ -6,6 +6,7 @@ const {
   fetchUsers,
   patchArticleById,
   fetchArticles,
+  fetchArticleComments,
 } = require("../models/app.model.js");
 
 exports.fetchTopics = (request, response, next) => {
@@ -54,6 +55,14 @@ exports.fetchArticles = (request, response, next) => {
   fetchArticles(request)
     .then((articles) => {
       response.status(200).send({ articles });
+    })
+    .catch((error) => next(error));
+};
+
+exports.fetchArticleComments = (request, response, next) => {
+  fetchArticleComments(request.params.article_id)
+    .then((comments) => {
+      response.status(200).send({ comments });
     })
     .catch((error) => next(error));
 };
