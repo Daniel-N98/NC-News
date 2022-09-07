@@ -267,3 +267,50 @@ describe("PATCH /api/articles/:article_id", () => {
       });
   });
 });
+
+describe("GET /api/articles/:article_id/comments", () => {
+  test("Status: 200, returns an array of comments", () => {
+    return request(app)
+      .get("/api/articles/9/comments")
+      .expect(200)
+      .then(({ body }) => {
+        const comments = body.comments;
+        expect(comments.length).toBe(2);
+        comments.forEach((comment) => {
+          expect(comment).toEqual(
+            expect.objectContaining({
+              comment_id: expect.any(Number),
+              votes: expect.any(Number),
+              created_at: expect.any(String),
+              author: expect.any(String),
+              body: expect.any(String),
+            })
+          );
+        });
+      });
+  });
+  test("Status: 200, returns an empty array when the article_id exists, but has no comments", () => {
+    return request(app)
+      .get("/api/articles/2/comments")
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.comments).toEqual([]);
+      });
+  });
+  test("Status: 404, handles error when article_id does not exist", () => {
+    return request(app)
+      .get("/api/articles/140/comments")
+      .expect(404)
+      .then(({ body }) => {
+        expect(body.message).toBe("Article does not exist");
+      });
+  });
+  test("Status: 400, handles error when article_id is invalid", () => {
+    return request(app)
+      .get("/api/articles/NotAnID/comments")
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.message).toBe("Invalid id");
+      });
+  });
+});
