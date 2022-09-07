@@ -44,3 +44,20 @@ exports.patchArticleById = (article_id, votes) => {
         });
     });
 };
+
+exports.fetchArticles = async (request) => {
+  let whereClause = "";
+  const topic = request.query.topic;
+  if (topic) {
+    const topics = await db.query("SELECT * FROM topics WHERE slug = $1", [
+      topic,
+    ]);
+    if (topics.rowCount === 0) return Promise.reject({code: 404, message: "Topic does not exist"});
+    whereClause = `WHERE topic = '${topic}'`;
+  }
+  const articles = await db.query(
+    `SELECT *, (select COUNT(*) FROM comments WHERE article_id = articles.article_id) AS comment_count 
+  FROM articles ${whereClause} ORDER BY created_at DESC`
+  );
+  return articles.rows;
+};
