@@ -234,6 +234,31 @@ describe("GET /api/users", () => {
   });
 });
 
+describe("GET /api/users/:username", () => {
+  test("Status: 200, returns an user object with the specified username", () => {
+    return request(app)
+      .get("/api/users/rogersop")
+      .expect(200)
+      .then(({ body }) => {
+        const user = body.user;
+        expect(user.rows[0]).toEqual({
+          username: "rogersop",
+          name: "paul",
+          avatar_url:
+            "https://avatars2.githubusercontent.com/u/24394918?s=400&v=4",
+        });
+      });
+  });
+  test("Status: 404, handles error when username does not exist", () => {
+    return request(app)
+      .get("/api/users/dippitydoppityboop")
+      .expect(404)
+      .then(({ body }) => {
+        expect(body.message).toBe("Username does not exist");
+      });
+  });
+});
+
 describe("PATCH /api/articles/:article_id", () => {
   test("Status: 200, returns an article with votes increased ", () => {
     const newVotes = { inc_votes: 10 };
