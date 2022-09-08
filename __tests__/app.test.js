@@ -41,7 +41,7 @@ describe("GET /api/topics", () => {
 });
 
 describe("GET /api/articles", () => {
-  test("Status: 200, returns an array of all articles sorted by date in descending order", () => {
+  test("Status: 200, returns an array of all articles", () => {
     return request(app)
       .get("/api/articles")
       .expect(200)
@@ -107,6 +107,57 @@ describe("GET /api/articles?topic", () => {
   });
 });
 
+describe("GET /api/articles with queries", () => {
+  test("Status: 200, articles are sorted by created_at by default if sort_by value is empty, in descending order", () => {
+    return request(app)
+      .get("/api/articles?sort_by=")
+      .expect(200)
+      .then(({ body }) => {
+        const { articles } = body;
+        expect(articles).toBeSortedBy("created_at", {
+          descending: true,
+        });
+      });
+  });
+  test("Status: 200, articles are sorted by votes in descending order (default order)", () => {
+    return request(app)
+      .get("/api/articles?sort_by=votes")
+      .expect(200)
+      .then(({ body }) => {
+        const { articles } = body;
+        expect(articles).toBeSortedBy("votes", {
+          descending: true,
+        });
+      });
+  });
+  test("Status: 200, articles are sorted by votes in ascending order", () => {
+    return request(app)
+      .get("/api/articles?sort_by=votes&order=asc")
+      .expect(200)
+      .then(({ body }) => {
+        const { articles } = body;
+        expect(articles).toBeSortedBy("votes", {
+          descending: false,
+        });
+      });
+  });
+  test("Status: 400, error handled when sort_by value is not valid", () => {
+    return request(app)
+      .get("/api/articles?sort_by=elephantos")
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.message).toBe("Sort_by value is not valid");
+      });
+  });
+  test("Status: 400, handles error when order value is invalid", () => {
+    return request(app)
+      .get("/api/articles?sort_by=votes&order=smallest-first")
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.message).toBe("Invalid order value");
+      });
+  });
+});
 describe("GET /api/articles/:article_id", () => {
   test("Status: 200, returns an article by ID including comment_count", () => {
     const expectedArticle = {

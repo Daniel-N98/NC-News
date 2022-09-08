@@ -47,7 +47,28 @@ exports.patchArticleById = (article_id, votes) => {
 
 exports.fetchArticles = async (request) => {
   let whereClause = "";
-  const topic = request.query.topic;
+  let sortBy = "ORDER BY created_at";
+  let orderBy = "DESC";
+  const validSortByValues = [
+    "title",
+    "topic",
+    "author",
+    "body",
+    "created_at",
+    "votes",
+    "artical_id",
+  ];
+  const { topic, sort_by, order } = request.query;
+  if (sort_by) {
+    if (validSortByValues.includes(sort_by)) {
+      sortBy = `ORDER BY ${sort_by}`;
+    } else {
+      return Promise.reject({
+        code: 400,
+        message: "Sort_by value is not valid",
+      });
+    }
+  }
   if (topic) {
     const topics = await db.query("SELECT * FROM topics WHERE slug = $1", [
       topic,
@@ -56,9 +77,16 @@ exports.fetchArticles = async (request) => {
       return Promise.reject({ code: 404, message: "Topic does not exist" });
     whereClause = `WHERE topic = '${topic}'`;
   }
+  if (order) {
+    if (order.toUpperCase() === "ASC" || order.toUpperCase() === "DESC") {
+      orderBy = order;
+    } else {
+      return Promise.reject({ code: 400, message: "Invalid order value" });
+    }
+  }
   const articles = await db.query(
     `SELECT *, (select COUNT(*) FROM comments WHERE article_id = articles.article_id) AS comment_count 
-  FROM articles ${whereClause} ORDER BY created_at DESC`
+  FROM articles ${whereClause} ${sortBy} ${orderBy}`
   );
   return articles.rows;
 };
