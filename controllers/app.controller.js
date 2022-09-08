@@ -9,6 +9,7 @@ const {
   fetchArticleComments,
   postArticleComment,
   deleteCommentByID,
+  showEndpoints,
 } = require("../models/app.model.js");
 
 exports.fetchTopics = (request, response, next) => {
@@ -84,3 +85,7 @@ exports.deleteCommentByID = (request, response, next) => {
     })
     .catch((error) => next(error));
 };
+
+exports.showEndpoints = (request, response, next) => {
+  response.status(200).send(showEndpoints());
+}

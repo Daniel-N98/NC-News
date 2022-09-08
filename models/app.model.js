@@ -1,3 +1,4 @@
+const { end } = require("../db/connection");
 const db = require("../db/connection");
 
 exports.fetchTopics = async () => {
@@ -142,6 +143,11 @@ exports.deleteCommentByID = async (comment_id) => {
   }
   await db.query("DELETE FROM comments WHERE comment_id = $1", [comment_id]);
 };
+
+exports.showEndpoints = () => {
+  const endpoints = require('../endpoints.json');
+  return endpoints;
+}
 
 function isInvalidID(article_id) {
   return !/^[0-9]*$/.test(article_id);
