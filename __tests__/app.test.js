@@ -481,8 +481,8 @@ describe("DELETE /api/comments/:comment_id", () => {
   });
 });
 
-describe("Endpoints", () => {
-  test("returns an object containing all endpoints", () => {
+describe("GET endpoints", () => {
+  test("Status: 200, returns an object containing all endpoints", () => {
     return request(app)
       .get("/api")
       .expect(200)
