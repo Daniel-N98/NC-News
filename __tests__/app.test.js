@@ -487,7 +487,6 @@ describe('Endpoints', () => {
     .get('/api')
     .expect(200)
     .then(({body}) => {
-      console.log(body);
     })
   })
 })
