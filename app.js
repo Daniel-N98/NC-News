@@ -8,13 +8,13 @@ const {
   fetchArticleComments,
   postArticleComment,
   deleteCommentByID,
-  showEndpoints,
+  fetchEndpoints,
 } = require("./controllers/app.controller");
 
 const app = express();
 app.use(express.json());
 
-app.get("/api", showEndpoints);
+app.get("/api", fetchEndpoints);
 app.get("/api/users", fetchUsers);
 app.get("/api/topics", fetchTopics);
 app.get("/api/articles", fetchArticles);

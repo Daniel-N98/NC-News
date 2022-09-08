@@ -144,7 +144,7 @@ exports.deleteCommentByID = async (comment_id) => {
   await db.query("DELETE FROM comments WHERE comment_id = $1", [comment_id]);
 };
 
-exports.showEndpoints = () => {
+exports.fetchEndpoints = () => {
   const endpoints = require('../endpoints.json');
   return endpoints;
 }

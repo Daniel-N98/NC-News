@@ -480,3 +480,14 @@ describe("DELETE /api/comments/:comment_id", () => {
       });
   });
 });
+
+describe('Endpoints', () => {
+  test('', () => {
+    return request(app)
+    .get('/api')
+    .expect(200)
+    .then(({body}) => {
+      console.log(body);
+    })
+  })
+})
