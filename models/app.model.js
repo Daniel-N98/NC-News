@@ -25,6 +25,12 @@ exports.fetchUsers = () => {
   return db.query(`SELECT * FROM users`).then((users) => users.rows);
 };
 
+exports.fetchUserByUsername = async (username) => {
+  if (!(await userExists(username))) {
+    return Promise.reject({ code: 404, message: "Username does not exist" });
+  }
+  return await db.query("SELECT * FROM users WHERE username = $1", [username]);
+};
 exports.patchArticleById = (article_id, votes) => {
   if (!Number.parseInt(article_id) || !Number.parseInt(votes)) {
     return Promise.reject({ code: 400, message: "Bad request" });
@@ -145,9 +151,9 @@ exports.deleteCommentByID = async (comment_id) => {
 };
 
 exports.fetchEndpoints = () => {
-  const endpoints = require('../endpoints.json');
+  const endpoints = require("../endpoints.json");
   return endpoints;
-}
+};
 
 function isInvalidID(article_id) {
   return !/^[0-9]*$/.test(article_id);
