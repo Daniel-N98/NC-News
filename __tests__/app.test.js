@@ -480,3 +480,20 @@ describe("DELETE /api/comments/:comment_id", () => {
       });
   });
 });
+
+describe("GET endpoints", () => {
+  test("Status: 200, returns an object containing all endpoints", () => {
+    return request(app)
+      .get("/api")
+      .expect(200)
+      .then(({ body }) => {
+        expect(body).toHaveProperty("GET /api");
+        expect(body).toHaveProperty("GET /api/articles");
+        expect(body).toHaveProperty("GET /api/articles/:article_id");
+        expect(body).toHaveProperty("GET /api/users");
+        expect(body).toHaveProperty("GET /api/articles/:article_id/comments");
+        expect(body).toHaveProperty("POST /api/articles/:article_id/comments");
+        expect(body).toHaveProperty("PATCH /api/articles/:article_id");
+      });
+  });
+});
