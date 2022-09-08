@@ -200,7 +200,7 @@ describe("GET /api/articles/:article_id", () => {
       .get("/api/articles/15")
       .expect(404)
       .then(({ body }) => {
-        expect(body.message).toBe("Not found");
+        expect(body.message).toBe("Article does not exist");
       });
   });
   test("Status: 400, handles error when Id is invalid", () => {
@@ -241,7 +241,7 @@ describe("GET /api/users/:username", () => {
       .expect(200)
       .then(({ body }) => {
         const user = body.user;
-        expect(user.rows[0]).toEqual({
+        expect(user).toEqual({
           username: "rogersop",
           name: "paul",
           avatar_url:
@@ -309,7 +309,7 @@ describe("PATCH /api/articles/:article_id", () => {
       .send(newVotes)
       .expect(404)
       .then(({ body }) => {
-        expect(body.message).toBe("Article not found");
+        expect(body.message).toBe("Article does not exist");
       });
   });
   test("Status: 400, handles error correctly when passed an invalid ID", () => {

@@ -5,20 +5,15 @@ exports.fetchTopics = async () => {
   return db.query("SELECT * FROM topics").then((topic) => topic.rows);
 };
 
-exports.fetchArticleById = (article_id) => {
-  return db
-    .query(
-      `SELECT *, (select COUNT(*) FROM comments WHERE article_id = articles.article_id) AS comment_count 
-    FROM articles
-    WHERE article_id = $1`,
-      [article_id]
-    )
-    .then((article) => {
-      if (article.rows.length === 0) {
-        return Promise.reject({ code: 404, message: "Not found" });
-      }
-      return article.rows[0];
-    });
+exports.fetchArticleById = async (article_id) => {
+  await getArticleIfExists(article_id);
+  const articles = await db.query(
+    `SELECT *, (select COUNT(*) FROM comments WHERE article_id = articles.article_id) AS comment_count 
+  FROM articles
+  WHERE article_id = $1`,
+    [article_id]
+  );
+  return articles.rows[0];
 };
 
 exports.fetchUsers = () => {
@@ -26,30 +21,17 @@ exports.fetchUsers = () => {
 };
 
 exports.fetchUserByUsername = async (username) => {
-  if (!(await userExists(username))) {
-    return Promise.reject({ code: 404, message: "Username does not exist" });
-  }
-  return await db.query("SELECT * FROM users WHERE username = $1", [username]);
+  return await getUserIfExists(username);
 };
-exports.patchArticleById = (article_id, votes) => {
-  if (!Number.parseInt(article_id) || !Number.parseInt(votes)) {
-    return Promise.reject({ code: 400, message: "Bad request" });
-  }
-  return db
-    .query("SELECT votes FROM articles WHERE article_id = $1", [article_id])
-    .then((articles) => {
-      if (articles.rowCount === 0) {
-        return Promise.reject({ code: 404, message: "Article not found" });
-      }
-      return db
-        .query(
-          "UPDATE articles SET votes = $1 WHERE article_id = $2 RETURNING *;",
-          [articles.rows[0].votes + votes, article_id]
-        )
-        .then((article) => {
-          return article.rows[0];
-        });
-    });
+exports.patchArticleById = async (article_id, votes) => {
+  await isValidNumber(article_id, "Bad request");
+  await isValidNumber(votes, "Bad request");
+  const articles = await getArticleIfExists(article_id);
+  const updatedArticle = await db.query(
+    "UPDATE articles SET votes = $1 WHERE article_id = $2 RETURNING *;",
+    [articles.votes + votes, article_id]
+  );
+  return updatedArticle.rows[0];
 };
 
 exports.fetchArticles = async (request) => {
@@ -99,16 +81,8 @@ exports.fetchArticles = async (request) => {
 };
 
 exports.fetchArticleComments = async (article_id) => {
-  if (isInvalidID(article_id)) {
-    return Promise.reject({ code: 400, message: "Invalid id" });
-  }
-  const articles = await db.query(
-    "SELECT article_id FROM articles WHERE article_id = $1",
-    [article_id]
-  );
-  if (articles.rowCount === 0) {
-    return Promise.reject({ code: 404, message: "Article does not exist" });
-  }
+  await isValidNumber(article_id, "Invalid id");
+  await getArticleIfExists(article_id);
   const comments = await db.query(
     `SELECT comment_id, votes, created_at, author, body FROM comments
     WHERE article_id = ${article_id}`
@@ -117,18 +91,12 @@ exports.fetchArticleComments = async (article_id) => {
 };
 
 exports.postArticleComment = async (article_id, comment) => {
-  if (isInvalidID(article_id)) {
-    return Promise.reject({ code: 400, message: "Invalid id" });
-  }
-  if (!(await articleExists(article_id))) {
-    return Promise.reject({ code: 404, message: "Article does not exist" });
-  }
+  await isValidNumber(article_id, "Invalid id");
+  await getArticleIfExists(article_id);
   if (!comment.hasOwnProperty("username") || !comment.hasOwnProperty("body")) {
     return Promise.reject({ code: 400, message: "Invalid comment" });
   }
-  if (!(await userExists(comment.username))) {
-    return Promise.reject({ code: 404, message: "Username does not exist" });
-  }
+  await getUserIfExists(comment.username);
   return await db.query(
     `INSERT INTO comments (article_id, author, body)
     VALUES ($1, $2, $3) RETURNING *;`,
@@ -137,41 +105,25 @@ exports.postArticleComment = async (article_id, comment) => {
 };
 
 exports.deleteCommentByID = async (comment_id) => {
-  if (isInvalidID(comment_id)) {
-    return Promise.reject({ code: 400, message: "Invalid id" });
-  }
-  const comments = await db.query(
-    "SELECT comment_id FROM comments WHERE comment_id = $1",
-    [comment_id]
-  );
-  if (comments.rowCount === 0) {
-    return Promise.reject({ code: 404, message: "Comment does not exist" });
-  }
+  await isValidNumber(comment_id, "Invalid id");
+  await commentExists(comment_id);
   await db.query("DELETE FROM comments WHERE comment_id = $1", [comment_id]);
 };
 
 exports.patchCommentByID = async (comment_id, body) => {
   const { inc_votes } = body;
-  if (isInvalidID(comment_id)) {
-    return Promise.reject({ code: 400, message: "Invalid id" });
-  }
-  const comments = await db.query(
-    "SELECT votes FROM comments WHERE comment_id = $1",
-    [comment_id]
-  );
-  if (comments.rowCount === 0) {
-    return Promise.reject({ code: 404, message: "Comment does not exist" });
-  }
-  if (inc_votes === undefined) {
+  await isValidNumber(comment_id, "Invalid id");
+  const comments = await commentExists(comment_id);
+
+  if (!inc_votes) {
     return Promise.reject({ code: 400, message: "Invalid body" });
   }
+  await isValidNumber(inc_votes, "Invalid new vote value");
 
-  if (isInvalidID(inc_votes)) {
-    return Promise.reject({ code: 400, message: "Invalid new vote value" });
-  }
-  const newVote = comments.rows[0].votes + inc_votes;
   const updatedComment = await db.query(
-    `UPDATE comments SET votes = ${newVote} WHERE comment_id = ${comment_id} RETURNING *;`
+    `UPDATE comments SET votes = ${
+      comments.votes + inc_votes
+    } WHERE comment_id = ${comment_id} RETURNING *;`
   );
   return updatedComment.rows[0];
 };
@@ -181,22 +133,37 @@ exports.fetchEndpoints = () => {
   return endpoints;
 };
 
-function isInvalidID(article_id) {
-  return !/^[-0-9]*$/.test(article_id);
+function isValidNumber(article_id, error) {
+  if (!/^[-0-9]*$/.test(article_id)) {
+    return Promise.reject({ code: 400, message: error });
+  }
 }
 
-async function userExists(username) {
-  const result = await db.query(
-    "SELECT username FROM users WHERE username = $1",
-    [username]
+async function commentExists(comment_id) {
+  const comments = await db.query(
+    "SELECT * FROM comments WHERE comment_id = $1",
+    [comment_id]
   );
-  return result.rowCount > 0;
+  return comments.rowCount === 0
+    ? Promise.reject({ code: 404, message: "Comment does not exist" })
+    : comments.rows[0];
 }
 
-async function articleExists(article_id) {
+async function getUserIfExists(username) {
+  const users = await db.query("SELECT * FROM users WHERE username = $1", [
+    username,
+  ]);
+  return users.rowCount === 0
+    ? Promise.reject({ code: 404, message: "Username does not exist" })
+    : users.rows[0];
+}
+
+async function getArticleIfExists(article_id) {
   const articles = await db.query(
-    "SELECT article_id FROM articles WHERE article_id = $1",
+    "SELECT * FROM articles WHERE article_id = $1",
     [article_id]
   );
-  return articles.rowCount > 0;
+  return articles.rowCount === 0
+    ? Promise.reject({ code: 404, message: "Article does not exist" })
+    : articles.rows[0];
 }
