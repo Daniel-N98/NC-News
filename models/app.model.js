@@ -64,7 +64,7 @@ exports.fetchArticles = async (request) => {
       sortBy = `ORDER BY ${sort_by}`;
     } else {
       return Promise.reject({
-        code: 404,
+        code: 400,
         message: "Sort_by value is not valid",
       });
     }

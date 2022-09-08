@@ -141,10 +141,10 @@ describe("GET /api/articles with queries", () => {
         });
       });
   });
-  test("Status: 404, error handled when sort_by value is not valid", () => {
+  test("Status: 400, error handled when sort_by value is not valid", () => {
     return request(app)
       .get("/api/articles?sort_by=elephantos")
-      .expect(404)
+      .expect(400)
       .then(({ body }) => {
         expect(body.message).toBe("Sort_by value is not valid");
       });
