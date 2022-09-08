@@ -133,13 +133,15 @@ exports.deleteCommentByID = async (comment_id) => {
   if (isInvalidID(comment_id)) {
     return Promise.reject({ code: 400, message: "Invalid id" });
   }
-  const comments = await db.query('SELECT comment_id FROM comments WHERE comment_id = $1', [comment_id]);
-  if (comments.rowCount === 0){
+  const comments = await db.query(
+    "SELECT comment_id FROM comments WHERE comment_id = $1",
+    [comment_id]
+  );
+  if (comments.rowCount === 0) {
     return Promise.reject({ code: 404, message: "Comment does not exist" });
   }
-  await db.query('DELETE FROM comments WHERE comment_id = $1', [comment_id]);
-}
-
+  await db.query("DELETE FROM comments WHERE comment_id = $1", [comment_id]);
+};
 
 function isInvalidID(article_id) {
   return !/^[0-9]*$/.test(article_id);

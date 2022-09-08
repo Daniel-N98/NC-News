@@ -20,7 +20,7 @@ app.get("/api/articles/:article_id", fetchArticleById);
 app.get("/api/articles/:article_id/comments", fetchArticleComments);
 app.post("/api/articles/:article_id/comments", postArticleComment);
 app.patch("/api/articles/:article_id", patchArticle);
-app.delete("/api/comments/:comment_id", deleteCommentByID)
+app.delete("/api/comments/:comment_id", deleteCommentByID);
 
 app.use((error, request, response, next) => {
   if (error.code && error.message) {
