@@ -150,13 +150,39 @@ exports.deleteCommentByID = async (comment_id) => {
   await db.query("DELETE FROM comments WHERE comment_id = $1", [comment_id]);
 };
 
+exports.patchCommentByID = async (comment_id, body) => {
+  const { inc_votes } = body;
+  if (isInvalidID(comment_id)) {
+    return Promise.reject({ code: 400, message: "Invalid id" });
+  }
+  const comments = await db.query(
+    "SELECT votes FROM comments WHERE comment_id = $1",
+    [comment_id]
+  );
+  if (comments.rowCount === 0) {
+    return Promise.reject({ code: 404, message: "Comment does not exist" });
+  }
+  if (inc_votes === undefined) {
+    return Promise.reject({ code: 400, message: "Invalid body" });
+  }
+
+  if (isInvalidID(inc_votes)) {
+    return Promise.reject({ code: 400, message: "Invalid new vote value" });
+  }
+  const newVote = comments.rows[0].votes + inc_votes;
+  const updatedComment = await db.query(
+    `UPDATE comments SET votes = ${newVote} WHERE comment_id = ${comment_id} RETURNING *;`
+  );
+  return updatedComment.rows[0];
+};
+
 exports.fetchEndpoints = () => {
   const endpoints = require("../endpoints.json");
   return endpoints;
 };
 
 function isInvalidID(article_id) {
-  return !/^[0-9]*$/.test(article_id);
+  return !/^[-0-9]*$/.test(article_id);
 }
 
 async function userExists(username) {

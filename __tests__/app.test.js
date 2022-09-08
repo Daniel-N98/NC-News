@@ -506,6 +506,71 @@ describe("DELETE /api/comments/:comment_id", () => {
   });
 });
 
+describe("PATCH /api/comments/:comment_id", () => {
+  test("Status: 200, returns the updated comment object with an increase in votes", () => {
+    const newVote = 12;
+    return request(app)
+      .patch("/api/comments/1")
+      .send({ inc_votes: newVote })
+      .expect(200)
+      .then(({ body }) => {
+        const { comment } = body;
+        expect(comment.votes).toBe(28);
+      });
+  });
+  test("Status: 200, returns the updated comment object with a decrease in votes", () => {
+    const newVote = -6;
+    return request(app)
+      .patch("/api/comments/1")
+      .send({ inc_votes: newVote })
+      .expect(200)
+      .then(({ body }) => {
+        const { comment } = body;
+        expect(comment.votes).toBe(10);
+      });
+  });
+  test("Status: 404, handles error when comment does not exist", () => {
+    const newVote = 10;
+    return request(app)
+      .patch("/api/comments/91928")
+      .send({ inc_votes: newVote })
+      .expect(404)
+      .then(({ body }) => {
+        expect(body.message).toBe("Comment does not exist");
+      });
+  });
+  test("Status: 400, handles error when comment ID is invalid", () => {
+    const newVote = 10;
+    return request(app)
+      .patch("/api/comments/SELECT")
+      .send({ inc_votes: newVote })
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.message).toBe("Invalid id");
+      });
+  });
+  test("Status: 400, handles error when newVote is invalid", () => {
+    const newVote = "DELETE * FROM table";
+    return request(app)
+      .patch("/api/comments/1")
+      .send({ inc_votes: newVote })
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.message).toBe("Invalid new vote value");
+      });
+  });
+  test("Status: 400, handles error when inc_votes property is missing", () => {
+    const newVote = "DELETE * FROM table";
+    return request(app)
+      .patch("/api/comments/1")
+      .send({ new_name: newVote })
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.message).toBe("Invalid body");
+      });
+  });
+});
+
 describe("GET endpoints", () => {
   test("Status: 200, returns an object containing all endpoints", () => {
     return request(app)
