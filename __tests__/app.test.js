@@ -41,7 +41,7 @@ describe("GET /api/topics", () => {
 });
 
 describe("GET /api/articles", () => {
-  test("Status: 200, returns an array of all articles sorted by date in descending order", () => {
+  test("Status: 200, returns an array of all articles", () => {
     return request(app)
       .get("/api/articles")
       .expect(200)
@@ -108,7 +108,7 @@ describe("GET /api/articles?topic", () => {
 });
 
 describe("GET /api/articles with queries", () => {
-  test("Status: 200, articles are sorted by created_at by default if sort_by value is empty in descending order", () => {
+  test("Status: 200, articles are sorted by created_at by default if sort_by value is empty, in descending order", () => {
     return request(app)
       .get("/api/articles?sort_by=")
       .expect(200)
@@ -130,15 +130,7 @@ describe("GET /api/articles with queries", () => {
         });
       });
   });
-  test("Status: 400, error handled when sort_by value is not valid", () => {
-    return request(app)
-      .get("/api/articles?sort_by=elephantos")
-      .expect(404)
-      .then(({ body }) => {
-        expect(body.message).toBe("Sort_by value is not valid");
-      });
-  });
-  test("Status: 200, returns articles sorted by votes, in ascending order", () => {
+  test("Status: 200, articles are sorted by votes in ascending order", () => {
     return request(app)
       .get("/api/articles?sort_by=votes&order=asc")
       .expect(200)
@@ -147,6 +139,14 @@ describe("GET /api/articles with queries", () => {
         expect(articles).toBeSortedBy("votes", {
           descending: false,
         });
+      });
+  });
+  test("Status: 400, error handled when sort_by value is not valid", () => {
+    return request(app)
+      .get("/api/articles?sort_by=elephantos")
+      .expect(404)
+      .then(({ body }) => {
+        expect(body.message).toBe("Sort_by value is not valid");
       });
   });
   test("Status: 400, handles error when order value is invalid", () => {
