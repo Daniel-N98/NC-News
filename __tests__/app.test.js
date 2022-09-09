@@ -705,3 +705,42 @@ describe("POST /api/topics", () => {
     expect(body.message).toBe("Topic already exists");
   });
 });
+
+describe("DELETE /api/articles/:article_id", () => {
+  test("Expect articles with ID 1, and 5 to be present in the database", async () => {
+    const data = await db.query(
+      "SELECT * FROM articles WHERE article_id = 1 OR article_id = 5"
+    );
+    expect(data.rowCount).toBe(2);
+  });
+  test("Status: 204, deletes an article from the database by ID", async () => {
+    await request(app).delete("/api/articles/1").expect(204);
+    const data = await db.query("SELECT * FROM articles WHERE article_id = 1");
+    expect(data.rowCount).toBe(0);
+  });
+  test("Status: 204, deletes an article from the database by ID", async () => {
+    await request(app).delete("/api/articles/5").expect(204);
+    const data = await db.query("SELECT * FROM articles WHERE article_id = 5");
+    expect(data.rowCount).toBe(0);
+  });
+  test("Status: 404, handles error when article is not found", async () => {
+    const { body } = await request(app)
+      .delete("/api/articles/50000")
+      .expect(404);
+    expect(body.message).toBe("Article does not exist");
+  });
+  test("Status: 400, handles error when article id is invalid", async () => {
+    const { body } = await request(app)
+      .delete("/api/articles/SELECT")
+      .expect(400);
+    expect(body.message).toBe("Invalid id");
+  });
+  test("Expect comments with a deleted articles ID to also be deleted", async () => {
+    await request(app).delete("/api/articles/1").expect(204);
+    await request(app).delete("/api/articles/5").expect(204);
+    const comments = await db.query(
+      "SELECT * FROM comments WHERE article_id = 1 OR article_id = 5"
+    );
+    expect(comments.rowCount).toBe(0);
+  });
+});
