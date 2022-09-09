@@ -74,7 +74,7 @@ exports.fetchArticles = (request, response, next) => {
 };
 
 exports.fetchArticleComments = (request, response, next) => {
-  fetchArticleComments(request.params.article_id)
+  fetchArticleComments(request)
     .then((comments) => {
       response.status(200).send({ comments });
     })
