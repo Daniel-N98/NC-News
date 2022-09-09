@@ -1,4 +1,4 @@
-const { fetchTopics, postTopic } = require("../controllers/app.controller");
+const { fetchTopics, postTopic } = require("../controllers/topics.controller");
 const topicsRouter = require("express").Router();
 
 topicsRouter.route("/").get(fetchTopics).post(postTopic);

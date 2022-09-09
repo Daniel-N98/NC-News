@@ -6,7 +6,7 @@ const {
   postArticleComment,
   postArticle,
   deleteArticle,
-} = require("../controllers/app.controller");
+} = require("../controllers/articles.controller.js");
 const articleRouter = require("express").Router();
 
 articleRouter.route("/").get(fetchArticles).post(postArticle);

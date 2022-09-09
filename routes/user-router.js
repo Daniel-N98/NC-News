@@ -1,7 +1,7 @@
 const {
   fetchUsers,
   fetchUserByUsername,
-} = require("../controllers/app.controller");
+} = require("../controllers/users.controller.js");
 
 const userRouter = require("express").Router();
 
