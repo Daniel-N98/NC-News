@@ -47,7 +47,7 @@ describe("GET /api/articles", () => {
       .expect(200)
       .then(({ body }) => {
         const { articles } = body;
-        expect(articles.length).toBe(12);
+        expect(articles.length).toBe(10);
         articles.forEach((article) => {
           expect(article).toEqual(
             expect.objectContaining({
@@ -76,6 +76,80 @@ describe("GET /api/articles", () => {
   });
 });
 
+describe("GET /api/articles with pagination", () => {
+  test("Status: 200, returns 5 articles when the limit is set to 5", () => {
+    return request(app)
+      .get("/api/articles?limit=5")
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.articles.length).toBe(5);
+      });
+  });
+  test("Status: 200, returns 8 articles when the limit is set to 8", () => {
+    return request(app)
+      .get("/api/articles?limit=8")
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.articles.length).toBe(8);
+      });
+  });
+  test("Status: 200, returns 10 articles when the limit is not provided", () => {
+    return request(app)
+      .get("/api/articles")
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.articles.length).toBe(10);
+      });
+  });
+  test("Status: 200, starts at page 3 with limit set to 3", () => {
+    return request(app)
+      .get("/api/articles?limit=3&p=3")
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.articles[0].title).toBe(
+          "Seven inspirational thought leaders from Manchester UK"
+        );
+      });
+  });
+  test("Status: 200, starts at page 1", () => {
+    return request(app)
+      .get("/api/articles?p=1")
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.articles[0].title).toBe(
+          "A"
+        );
+        expect(body.articles[9].title).toBe(
+          "Am I a cat?"
+        );
+      });
+  });
+  test("Status: 200, returns remaining articles when limit is greater than the total articles left", () => {
+    return request(app)
+      .get("/api/articles?limit=3&p=4")
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.articles.length).toBe(2);
+      });
+  });
+  test("Status: 400, handles error when limit value is invalid", () => {
+    return request(app)
+      .get("/api/articles?limit=SELECT")
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.message).toBe("Invalid limit value");
+      });
+  });
+  test("Status: 400, handles error when page value is invalid", () => {
+    return request(app)
+      .get("/api/articles?limit=8&p=DROP")
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.message).toBe("Invalid page value");
+      });
+  });
+});
+
 describe("GET /api/articles?topic", () => {
   test("Status: 200, returns an array of articles with the specified topic", () => {
     return request(app)
@@ -83,7 +157,7 @@ describe("GET /api/articles?topic", () => {
       .expect(200)
       .then(({ body }) => {
         const { articles } = body;
-        expect(articles.length).toBe(11);
+        expect(articles.length).toBe(10);
         articles.forEach((article) => {
           expect(article.topic).toBe("mitch");
         });

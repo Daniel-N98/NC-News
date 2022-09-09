@@ -46,7 +46,7 @@ exports.fetchArticles = async (request) => {
     "votes",
     "artical_id",
   ];
-  const { topic, sort_by, order } = request.query;
+  const { topic, sort_by, order, limit = 10, p } = request.query;
   if (sort_by) {
     if (validSortByValues.includes(sort_by)) {
       sortBy = `ORDER BY ${sort_by}`;
@@ -67,6 +67,14 @@ exports.fetchArticles = async (request) => {
     } else {
       return reject(400, "Invalid order value");
     }
+  }
+  if (limit) {
+    await isValidNumber(limit, "Invalid limit value");
+    orderBy += ` LIMIT ${limit}`;
+  }
+  if (p) {
+    await isValidNumber(p, "Invalid page value");
+    orderBy += ` OFFSET ${(p - 1) * limit + 1}`;
   }
   const articles = await db.query(
     `SELECT *, (select COUNT(*) FROM comments WHERE article_id = articles.article_id) AS comment_count 
