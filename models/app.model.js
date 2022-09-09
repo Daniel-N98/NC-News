@@ -209,7 +209,7 @@ exports.deleteArticleById = async (request) => {
   await isValidNumber(article_id, "Invalid id");
   await getArticleIfExists(article_id);
 
-  await db.query("DELETE FROM articles WHERE article_id = $1 RETURNING *;", [
+  const data = await db.query("DELETE FROM articles WHERE article_id = $1 RETURNING *;", [
     article_id,
   ]);
 };
