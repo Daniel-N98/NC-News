@@ -12,6 +12,7 @@ const {
   fetchEndpoints,
   fetchUserByUsername,
   patchCommentByID,
+  postArticle,
 } = require("../models/app.model.js");
 
 exports.fetchTopics = (request, response, next) => {
@@ -106,4 +107,12 @@ exports.patchCommentByID = (request, response, next) => {
 
 exports.fetchEndpoints = (request, response, next) => {
   response.status(200).send(fetchEndpoints());
+};
+
+exports.postArticle = (request, response, next) => {
+  postArticle(request.body)
+    .then((article) => {
+      response.status(201).send({ article });
+    })
+    .catch((error) => next(error));
 };
