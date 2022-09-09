@@ -1,4 +1,3 @@
-const { end } = require("../db/connection");
 const db = require("../db/connection");
 
 exports.fetchTopics = async () => {
@@ -52,25 +51,21 @@ exports.fetchArticles = async (request) => {
     if (validSortByValues.includes(sort_by)) {
       sortBy = `ORDER BY ${sort_by}`;
     } else {
-      return Promise.reject({
-        code: 400,
-        message: "Sort_by value is not valid",
-      });
+      return reject(400, "Sort_by value is not valid");
     }
   }
   if (topic) {
     const topics = await db.query("SELECT * FROM topics WHERE slug = $1", [
       topic,
     ]);
-    if (topics.rowCount === 0)
-      return Promise.reject({ code: 404, message: "Topic does not exist" });
+    if (topics.rowCount === 0) return reject(404, "Topic does not exist");
     whereClause = `WHERE topic = '${topic}'`;
   }
   if (order) {
     if (order.toUpperCase() === "ASC" || order.toUpperCase() === "DESC") {
       orderBy = order;
     } else {
-      return Promise.reject({ code: 400, message: "Invalid order value" });
+      return reject(400, "Invalid order value");
     }
   }
   const articles = await db.query(
@@ -94,7 +89,7 @@ exports.postArticleComment = async (article_id, comment) => {
   await isValidNumber(article_id, "Invalid id");
   await getArticleIfExists(article_id);
   if (!comment.hasOwnProperty("username") || !comment.hasOwnProperty("body")) {
-    return Promise.reject({ code: 400, message: "Invalid comment" });
+    return reject(400, "Invalid comment");
   }
   await getUserIfExists(comment.username);
   return await db.query(
@@ -116,7 +111,7 @@ exports.patchCommentByID = async (comment_id, body) => {
   const comments = await commentExists(comment_id);
 
   if (!inc_votes) {
-    return Promise.reject({ code: 400, message: "Invalid body" });
+    return reject(400, "Invalid body");
   }
   await isValidNumber(inc_votes, "Invalid new vote value");
 
@@ -138,14 +133,11 @@ exports.postArticle = async (body) => {
   const hasKeys = requiredKeys.every((i) => body.hasOwnProperty(i));
 
   if (!hasKeys) {
-    return Promise.reject({
-      code: 400,
-      message: "Article object is missing keys",
-    });
+    return reject(400, "Article object is missing keys");
   }
   for (let property in body) {
     if (typeof body[property] !== "string") {
-      return Promise.reject({ code: 400, message: "Invalid article values" });
+      return reject(400, "Invalid article values");
     }
   }
 
@@ -154,7 +146,7 @@ exports.postArticle = async (body) => {
     `SELECT * FROM topics WHERE slug = '${body.topic}'`
   );
   if (topic.rowCount === 0) {
-    return Promise.reject({ code: 404, message: "Topic does not exist" });
+    return reject(404, "Topic does not exist");
   }
 
   const insertedArticle = await db.query(
@@ -167,8 +159,12 @@ exports.postArticle = async (body) => {
 
 function isValidNumber(article_id, error) {
   if (!/^[-0-9]*$/.test(article_id)) {
-    return Promise.reject({ code: 400, message: error });
+    return reject(400, error);
   }
+}
+
+function reject(code, message) {
+  return Promise.reject({ code, message });
 }
 
 async function commentExists(comment_id) {
@@ -177,7 +173,7 @@ async function commentExists(comment_id) {
     [comment_id]
   );
   return comments.rowCount === 0
-    ? Promise.reject({ code: 404, message: "Comment does not exist" })
+    ? reject(404, "Comment does not exist")
     : comments.rows[0];
 }
 
@@ -185,9 +181,7 @@ async function getUserIfExists(username, message = "Username does not exist") {
   const users = await db.query("SELECT * FROM users WHERE username = $1", [
     username,
   ]);
-  return users.rowCount === 0
-    ? Promise.reject({ code: 404, message })
-    : users.rows[0];
+  return users.rowCount === 0 ? reject(404, message) : users.rows[0];
 }
 
 async function getArticleIfExists(article_id) {
@@ -196,6 +190,6 @@ async function getArticleIfExists(article_id) {
     [article_id]
   );
   return articles.rowCount === 0
-    ? Promise.reject({ code: 404, message: "Article does not exist" })
+    ? reject(404, "Article does not exist")
     : articles.rows[0];
 }
