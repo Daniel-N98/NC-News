@@ -204,6 +204,16 @@ exports.postTopic = async (request) => {
   return insertedTopic.rows[0];
 };
 
+exports.deleteArticleById = async (request) => {
+  const { article_id } = request.params;
+  await isValidNumber(article_id, "Invalid id");
+  await getArticleIfExists(article_id);
+
+  await db.query("DELETE FROM articles WHERE article_id = $1 RETURNING *;", [
+    article_id,
+  ]);
+};
+
 function isValidNumber(article_id, error) {
   if (!/^[-0-9]*$/.test(article_id)) {
     return reject(400, error);

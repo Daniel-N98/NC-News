@@ -14,6 +14,7 @@ const {
   patchCommentByID,
   postArticle,
   postTopic,
+  deleteArticleById,
 } = require("../models/app.model.js");
 
 exports.fetchTopics = (request, response, next) => {
@@ -122,6 +123,14 @@ exports.postTopic = (request, response, next) => {
   postTopic(request)
     .then((topic) => {
       response.status(201).send({ topic });
+    })
+    .catch((error) => next(error));
+};
+
+exports.deleteArticle = (request, response, next) => {
+  deleteArticleById(request)
+    .then((article) => {
+      response.status(204).send({ article });
     })
     .catch((error) => next(error));
 };
