@@ -83,12 +83,24 @@ exports.fetchArticles = async (request) => {
   return articles.rows;
 };
 
-exports.fetchArticleComments = async (article_id) => {
+exports.fetchArticleComments = async (request) => {
+  const article_id = request.params.article_id;
   await isValidNumber(article_id, "Invalid id");
   await getArticleIfExists(article_id);
+  const { limit = 10, p } = request.query;
+  let limitOffset = "";
+  if (limit) {
+    await isValidNumber(limit, "Invalid limit value");
+    limitOffset += `LIMIT ${limit}`;
+  }
+  if (p) {
+    await isValidNumber(p, "Invalid page value");
+    limitOffset += ` OFFSET ${(p - 1) * limit + 1}`;
+  }
+
   const comments = await db.query(
     `SELECT comment_id, votes, created_at, author, body FROM comments
-    WHERE article_id = ${article_id}`
+    WHERE article_id = ${article_id} ${limitOffset}`
   );
   return comments.rows;
 };

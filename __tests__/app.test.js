@@ -196,7 +196,7 @@ describe("GET /api/articles/:article_id", () => {
       body: "I find this existence challenging",
       created_at: "2020-07-09T20:11:00.000Z",
       votes: 100,
-      comment_count: "11",
+      comment_count: "17",
     };
     const { body } = await request(app).get("/api/articles/1").expect(200);
     expect(body.article).toEqual(expectedArticle);
@@ -374,7 +374,7 @@ describe("POST /api/articles/:article_id/comments", () => {
       article_id: 2,
       body: "Why are stars always in the same spot in the sky? :/",
       author: comment.username,
-      comment_id: 19,
+      comment_id: 25,
       created_at: expect.any(String),
       votes: 0,
     });
@@ -606,5 +606,61 @@ describe("POST /api/articles", () => {
       .send(article)
       .expect(404);
     expect(body.message).toBe("Topic does not exist");
+  });
+});
+
+describe("GET /api/article/:article_id/comments with pagination", () => {
+  test("Status: 200, returns 5 comments when the limit is set to 5", async () => {
+    const { body } = await request(app)
+      .get("/api/articles/1/comments?limit=5")
+      .expect(200);
+    expect(body.comments.length).toBe(5);
+  });
+  test("Status: 200, returns 8 comments when the limit is set to 8", async () => {
+    const { body } = await request(app)
+      .get("/api/articles/1/comments?limit=8")
+      .expect(200);
+    expect(body.comments.length).toBe(8);
+  });
+  test("Status: 200, returns 10 comments when the limit is not provided", async () => {
+    const { body } = await request(app)
+      .get("/api/articles/1/comments")
+      .expect(200);
+    expect(body.comments.length).toBe(10);
+  });
+  test("Status: 200, starts at page 3 with limit set to 3", async () => {
+    const { body } = await request(app)
+      .get("/api/articles/1/comments?limit=3&p=3")
+      .expect(200);
+    expect(body.comments[0].body).toBe("Superficially charming");
+  });
+  test("Status: 200, starts at page 1", async () => {
+    const { body } = await request(app)
+      .get("/api/articles/1/comments?p=1")
+      .expect(200);
+    expect(body.comments[0].body).toBe(
+      "Replacing the quiet elegance of the dark suit and tie with the casual indifference of these muted earth tones is a form of fashion suicide, but, uh, call me crazy — onyou it works."
+    );
+    expect(body.comments[9].body).toBe(
+      "This morning, I showered for nine minutes."
+    );
+  });
+  test("Status: 200, returns remaining comments when limit is greater than the total comments left", async () => {
+    const { body } = await request(app)
+      .get("/api/articles/1/comments?limit=3&p=4")
+      .expect(200);
+    expect(body.comments.length).toBe(3);
+  });
+  test("Status: 400, handles error when limit value is invalid", async () => {
+    const { body } = await request(app)
+      .get("/api/articles/1/comments?limit=SELECT")
+      .expect(400);
+    expect(body.message).toBe("Invalid limit value");
+  });
+  test("Status: 400, handles error when page value is invalid", async () => {
+    const { body } = await request(app)
+      .get("/api/articles/1/comments?limit=8&p=DROP")
+      .expect(400);
+    expect(body.message).toBe("Invalid page value");
   });
 });
