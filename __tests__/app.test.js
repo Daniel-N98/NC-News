@@ -587,3 +587,107 @@ describe("GET endpoints", () => {
       });
   });
 });
+
+describe("POST /api/articles", () => {
+  test("Status: 201, adds a new article to the database", () => {
+    const article = {
+      author: "rogersop",
+      title: "Understanding fish",
+      body: "Fish are friends, not food",
+      topic: "mitch",
+    };
+    return request(app)
+      .post("/api/articles")
+      .send(article)
+      .expect(201)
+      .then(async () => {
+        const dbArticle = await db.query(
+          "SELECT * FROM articles ORDER BY created_at DESC"
+        );
+        expect(dbArticle.rows[0]).toEqual({
+          article_id: 13,
+          votes: 0,
+          created_at: expect.any(Date),
+          ...article,
+        });
+      });
+  });
+  test("Status: 201, returns the newly added article", () => {
+    const article = {
+      author: "rogersop",
+      title: "Understanding fish",
+      body: "Fish are friends, not food",
+      topic: "mitch",
+    };
+    return request(app)
+      .post("/api/articles")
+      .send(article)
+      .expect(201)
+      .then(({ body }) => {
+        expect(body.article).toEqual({
+          article_id: 13,
+          votes: 0,
+          created_at: expect.any(String),
+          ...article,
+        });
+      });
+  });
+  test("Status: 400, missing keys from the article object", () => {
+    const article = {
+      author: "rogersop",
+      topic: "mitch",
+    };
+    return request(app)
+      .post("/api/articles")
+      .send(article)
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.message).toBe("Article object is missing keys");
+      });
+  });
+  test("Status: 400, invalid article value(s)", () => {
+    const article = {
+      author: 646,
+      title: "Understanding fish",
+      body: "Fish are friends, not food",
+      topic: "mitch",
+    };
+    return request(app)
+      .post("/api/articles")
+      .send(article)
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.message).toBe("Invalid article values");
+      });
+  });
+  test("Status: 404, author does not exist", () => {
+    const article = {
+      author: "JimmyBob",
+      title: "Understanding fish",
+      body: "Fish are friends, not food",
+      topic: "mitch",
+    };
+    return request(app)
+      .post("/api/articles")
+      .send(article)
+      .expect(404)
+      .then(({ body }) => {
+        expect(body.message).toBe("Author does not exist");
+      });
+  });
+  test("Status: 404, topic does not exist", () => {
+    const article = {
+      author: "rogersop",
+      title: "Understanding fish",
+      body: "Fish are friends, not food",
+      topic: "googly",
+    };
+    return request(app)
+      .post("/api/articles")
+      .send(article)
+      .expect(404)
+      .then(({ body }) => {
+        expect(body.message).toBe("Topic does not exist");
+      });
+  });
+});

@@ -133,6 +133,38 @@ exports.fetchEndpoints = () => {
   return endpoints;
 };
 
+exports.postArticle = async (body) => {
+  const requiredKeys = ["author", "title", "body", "topic"];
+  const hasKeys = requiredKeys.every((i) => body.hasOwnProperty(i));
+
+  if (!hasKeys) {
+    return Promise.reject({
+      code: 400,
+      message: "Article object is missing keys",
+    });
+  }
+  for (let property in body) {
+    if (typeof body[property] !== "string") {
+      return Promise.reject({ code: 400, message: "Invalid article values" });
+    }
+  }
+
+  await getUserIfExists(body.author, "Author does not exist");
+  const topic = await db.query(
+    `SELECT * FROM topics WHERE slug = '${body.topic}'`
+  );
+  if (topic.rowCount === 0) {
+    return Promise.reject({ code: 404, message: "Topic does not exist" });
+  }
+
+  const insertedArticle = await db.query(
+    `INSERT INTO articles (title, author, body, topic)
+  VALUES ($1, $2, $3, $4) RETURNING *;`,
+    [body.title, body.author, body.body, body.topic]
+  );
+  return insertedArticle.rows[0];
+};
+
 function isValidNumber(article_id, error) {
   if (!/^[-0-9]*$/.test(article_id)) {
     return Promise.reject({ code: 400, message: error });
@@ -149,12 +181,12 @@ async function commentExists(comment_id) {
     : comments.rows[0];
 }
 
-async function getUserIfExists(username) {
+async function getUserIfExists(username, message = "Username does not exist") {
   const users = await db.query("SELECT * FROM users WHERE username = $1", [
     username,
   ]);
   return users.rowCount === 0
-    ? Promise.reject({ code: 404, message: "Username does not exist" })
+    ? Promise.reject({ code: 404, message })
     : users.rows[0];
 }
 
