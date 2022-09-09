@@ -664,3 +664,44 @@ describe("GET /api/article/:article_id/comments with pagination", () => {
     expect(body.message).toBe("Invalid page value");
   });
 });
+
+describe("POST /api/topics", () => {
+  test("Status: 201, adds a new topic to the database", async () => {
+    const topic = { slug: "music", description: "music is for the ears" };
+    await request(app).post("/api/topics").send(topic).expect(201);
+    const topic_db = await db.query("SELECT * FROM topics WHERE slug = $1", [
+      "music",
+    ]);
+    expect(topic_db.rows[0]).toEqual({
+      slug: "music",
+      description: "music is for the ears",
+    });
+  });
+  test("Status: 201, returns the newly added topic", async () => {
+    const topic = { slug: "music", description: "music is for the ears" };
+    const { body } = await request(app)
+      .post("/api/topics")
+      .send(topic)
+      .expect(201);
+    expect(body.topic).toEqual({
+      slug: "music",
+      description: "music is for the ears",
+    });
+  });
+  test("Status: 400, missing keys from the topic object", async () => {
+    const topic = { slug: "music" };
+    const { body } = await request(app)
+      .post("/api/topics")
+      .send(topic)
+      .expect(400);
+    expect(body.message).toBe("Missing keys in topic body");
+  });
+  test("Status: 400, topic already exists", async () => {
+    const topic = { slug: "paper", description: "music is for the ears" };
+    const { body } = await request(app)
+      .post("/api/topics")
+      .send(topic)
+      .expect(400);
+    expect(body.message).toBe("Topic already exists");
+  });
+});

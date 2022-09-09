@@ -13,6 +13,7 @@ const {
   fetchUserByUsername,
   patchCommentByID,
   postArticle,
+  postTopic,
 } = require("../models/app.model.js");
 
 exports.fetchTopics = (request, response, next) => {
@@ -113,6 +114,14 @@ exports.postArticle = (request, response, next) => {
   postArticle(request.body)
     .then((article) => {
       response.status(201).send({ article });
+    })
+    .catch((error) => next(error));
+};
+
+exports.postTopic = (request, response, next) => {
+  postTopic(request)
+    .then((topic) => {
+      response.status(201).send({ topic });
     })
     .catch((error) => next(error));
 };

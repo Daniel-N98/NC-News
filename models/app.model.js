@@ -177,6 +177,33 @@ exports.postArticle = async (body) => {
   return insertedArticle.rows[0];
 };
 
+exports.postTopic = async (request) => {
+  const { slug, description } = request.body;
+  const requiredKeys = ["slug", "description"];
+  const hasKeys = requiredKeys.every((i) => request.body.hasOwnProperty(i));
+
+  if (!hasKeys) {
+    return reject(400, "Missing keys in topic body");
+  }
+  if (!slug) {
+    return reject(400, "Invalid slug value");
+  }
+  if (!description) {
+    return reject(400, "Invalid description value");
+  }
+  const topic = await db.query("SELECT * FROM topics WHERE slug = $1", [slug]);
+  if (topic.rowCount > 0) {
+    return reject(400, "Topic already exists");
+  }
+
+  const insertedTopic = await db.query(
+    `INSERT INTO topics (slug, description)
+  VALUES ($1, $2) RETURNING *;`,
+    [slug, description]
+  );
+  return insertedTopic.rows[0];
+};
+
 function isValidNumber(article_id, error) {
   if (!/^[-0-9]*$/.test(article_id)) {
     return reject(400, error);
